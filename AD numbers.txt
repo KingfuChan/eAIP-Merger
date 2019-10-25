@@ -1,0 +1,11 @@
+AD 2.24 机场有关航图 Charts related to an aerodrome
+AD 2.24-1 机场图—— ICAO Aerodrome Chart —— ICAO
+AD 2.24-2 停机位置图—— ICAO Aircraft Parking Chart —— ICAO
+AD 2.24-4 机场障碍物A型图(运行限制) —— ICAO Aerodrome Obstruction Chart —— ICAO —— Type A (operation limitations)
+AD 2.24-5 精密进近地形图—— ICAO Precision Approach Terrain Chart —— ICAO
+AD 2.24-6 最低监视引导高度图—— ICAO ATC Surveillance Minimum Altitude Chart —— ICAO
+AD 2.24-7 标准仪表离场图—— ICAO Standard Departure Chart —— Instrument (SID) —— ICAO
+AD 2.24-9 标准仪表进场图—— ICAO Standard Arrival Chart —— Instrument (STAR) —— ICAO
+AD 2.24-10 仪表进近图—— ICAO Instrument Approach Chart —— ICAO
+AD 2.24-11 目视进近图—ICAO Visual Approach Chart —— ICAO
+AD 2.24-20 仪表进近图（RNAV）—ICAO Instrument Approach Chart(RNAV) —— ICAO
