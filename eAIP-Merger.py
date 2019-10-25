@@ -70,13 +70,14 @@ def main():
     for p in files:
         count += 1
         bookmark = generate_bookmark(p, sino)
-        if not bookmark:
-            print(f"警告！{p}有误，跳过...")
-            continue
-        print(f"正在读取{p}:{bookmark}...({count}/{len(files)})")
-        merger.append(os.path.join(directory, p), bookmark=bookmark)
+        if bookmark:
+            print(f"正在读取{p}:{bookmark}...({count}/{len(files)})")
+            merger.append(os.path.join(directory, p), bookmark=bookmark)
+        else:
+            print(f"警告！{p}有误，跳过...({count}/{len(files)})")
     print("合并完成！正在写入...")
     merger.write(output)
+    merger.close()
     print(f"合并后pdf已输出到{output}！")
     _exit = input("按回车键退出...")
 
