@@ -80,6 +80,4 @@ def main():
 
 
 if __name__ == "__main__":
-    c = Chart('ZBSJ', "ZBSJ-7C", "SID RNAV RWY15",
-              "https://wiki.sinofsx.com/Charts/AD/ZBSJ/ZBSJ-7C.pdf")
-    c.readPDF()
+    main()
