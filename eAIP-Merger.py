@@ -1,12 +1,18 @@
 import os
 import re
+from http.client import IncompleteRead
 from urllib.request import urlopen
+
 from PyPDF2 import PdfFileMerger, PdfFileReader
 
 
 def get_sino_html():
     url = "https://wiki.sinofsx.com/index.php?title=AD_2._%E6%9C%BA%E5%9C%BA_AERODROMES"
-    return urlopen(url).read().decode('utf-8')
+    try:
+        html = urlopen(url).read().decode('utf-8')
+    except IncompleteRead as e:
+        html = e.partial.decode('utf-8')
+    return html
 
 
 def get_group_index(name):
