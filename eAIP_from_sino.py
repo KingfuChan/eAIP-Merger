@@ -30,7 +30,8 @@ class Chart(object):
         self.code, self.name = info.get_text().split(':')
         self.url = link.find('a').get('href')
         self.cycle = cycle.get_text()
-        self.path = os.path.join(self.icao, self.code+'.pdf')
+        self.path = os.path.join(
+            OUTPUT_DIR, self.icao+'_'+self.cycle, self.code+'.pdf')
         self.group = self.get_group()
         self.group_name = GROUP_DICT[self.group]
 
@@ -46,8 +47,8 @@ class Chart(object):
     def download(self):
         print(f"正在下载...\t{self.code}:{self.name}")
         pdf = urlopen(self.url).read()
-        if not os.path.exists(self.icao):
-            os.mkdir(self.icao)
+        if not os.path.isdir(os.path.dirname(self.path)):
+            os.mkdir(os.path.dirname(self.path))
         with open(self.path, 'wb') as p:
             p.write(pdf)
 
@@ -59,6 +60,14 @@ class Chart(object):
         else:
             self.download()
             return self.readPDF()
+
+
+def get_output_directory():
+    d =os.path.abspath(input("请输入输出文件夹>"))
+    if not os.path.isdir(d):
+        os.mkdir(d)
+    global OUTPUT_DIR
+    OUTPUT_DIR = os.path.abspath(d)
 
 
 def parse_airport_from_table(html):
@@ -116,11 +125,13 @@ def merge_pdf(chart_list):
                 pagenum += reader.getNumPages()
 
     print("合并完成，正在保存文件...")
-    merger.write(filename)
+    merger.write(os.path.join(OUTPUT_DIR, filename))
     print(f"已保存到{filename}！")
 
 
 def main():
+    # preparations
+    get_output_directory()
     print("获取wiki.sinofsx.com页面...")
     webpage = urlopen(SINO_URL).read()  # in bytes
     extracted = extract_all_airport_charts(webpage)
@@ -137,8 +148,7 @@ def main():
             count = target['count']
             print(f"找到{icao}，共{count}份pdf文件！")
             merge_pdf(chart_list)
-            print("5秒后返回机场输入...")
-            sleep(5)
+            _pause = input("请按回车键继续...")
             os.system('cls')
         else:
             print("无法找到此机场！")
