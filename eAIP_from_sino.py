@@ -1,5 +1,6 @@
 import os
 import re
+from shutil import rmtree
 from time import sleep
 from urllib.request import urlopen
 
@@ -63,7 +64,7 @@ class Chart(object):
 
 
 def get_output_directory():
-    d =os.path.abspath(input("请输入输出文件夹>"))
+    d = os.path.abspath(input("请输入输出文件夹>"))
     if not os.path.isdir(d):
         os.mkdir(d)
     global OUTPUT_DIR
@@ -104,8 +105,10 @@ def regroup_charts(chart_list):
 
 
 def merge_pdf(chart_list):
-    """合并PDF，传入参数为Chart对象的列表"""
-    filename = chart_list[0].icao + '_' + chart_list[0].cycle + '.pdf'
+    """合并PDF，传入参数为Chart对象的列表，返回缓存目录"""
+    foldername = chart_list[0].icao+'_'+chart_list[0].cycle
+    tempfolder = os.path.join(OUTPUT_DIR, foldername)
+    filename = os.path.join(OUTPUT_DIR, foldername+'.pdf')
     chart_list = regroup_charts(chart_list)
     merger = PdfFileMerger(strict=False)
     pagenum = 0
@@ -125,8 +128,9 @@ def merge_pdf(chart_list):
                 pagenum += reader.getNumPages()
 
     print("合并完成，正在保存文件...")
-    merger.write(os.path.join(OUTPUT_DIR, filename))
+    merger.write(filename)
     print(f"已保存到{filename}！")
+    return tempfolder
 
 
 def main():
@@ -147,8 +151,9 @@ def main():
             chart_list = target['charts']
             count = target['count']
             print(f"找到{icao}，共{count}份pdf文件！")
-            merge_pdf(chart_list)
-            _pause = input("请按回车键继续...")
+            tempfolder = merge_pdf(chart_list)
+            if input("是否删除缓存文件？（Y/N）>").strip().upper() == 'Y':
+                rmtree(tempfolder)
             os.system('cls')
         else:
             print("无法找到此机场！")
