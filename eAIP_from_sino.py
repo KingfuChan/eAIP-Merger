@@ -2,6 +2,7 @@ import os
 import re
 from shutil import rmtree
 from time import sleep
+from urllib.error import HTTPError
 from urllib.request import urlopen
 
 from bs4 import BeautifulSoup
@@ -114,18 +115,28 @@ def merge_pdf(chart_list):
     pagenum = 0
     for cl in chart_list:
         if len(cl) == 1:
-            reader = cl[0].readPDF()
-            merger.append(reader, bookmark=cl[0].group_name+cl[0].name)
-            pagenum += reader.getNumPages()
+            try:
+                reader = cl[0].readPDF()
+            except HTTPError as he:
+                print("下载时发生错误，跳过！"+repr(he))
+                continue
+            else:
+                merger.append(reader, bookmark=cl[0].group_name+cl[0].name)
+                pagenum += reader.getNumPages()
         elif len(cl) > 1:
             group = cl[0].group_name
             for i in range(len(cl)):
-                reader = cl[i].readPDF()
-                merger.append(reader)
-                if i == 0:
-                    parent = merger.addBookmark(group, pagenum)
-                merger.addBookmark(cl[i].name, pagenum, parent)
-                pagenum += reader.getNumPages()
+                try:
+                    reader = cl[i].readPDF()
+                except HTTPError as he:
+                    print("下载时发生错误，跳过！"+repr(he))
+                    continue
+                else:
+                    merger.append(reader)
+                    if i == 0:
+                        parent = merger.addBookmark(group, pagenum)
+                    merger.addBookmark(cl[i].name, pagenum, parent)
+                    pagenum += reader.getNumPages()
 
     print("合并完成，正在保存文件...")
     merger.write(filename)
