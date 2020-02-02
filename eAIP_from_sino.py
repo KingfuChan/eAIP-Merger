@@ -32,14 +32,19 @@ class Chart(object):
         self.code, self.name = info.get_text().split(':')
         self.url = link.find('a').get('href')
         self.cycle = cycle.get_text()
-        self.path = os.path.join(
-            OUTPUT_DIR, self.icao+'_'+self.cycle, self.code+'.pdf')
         self.group = self.get_group()
         self.group_name = GROUP_DICT[self.group]
 
+        if self.group == '0':  # 提前对AD输出目录变更
+            self.path = os.path.join(
+                OUTPUT_DIR, self.icao+'_'+self.cycle+"_AD.pdf")
+        else:
+            self.path = os.path.join(
+                OUTPUT_DIR, self.icao+'_'+self.cycle, self.code+'.pdf')
+
     def __str__(self):
-        """For debugging purpose"""
-        return self.group
+        """#For debugging purpose"""
+        return self.code
 
     def get_group(self):
         key = re.findall(r"[A-Z]{4}-([0-9A-Z]+)", self.code)[0]
@@ -92,6 +97,9 @@ def extract_all_airport_charts(html):
 
 def regroup_charts(chart_list):
     """打包各组航图，传入参数为Charts对象的列表"""
+    chart_list.reverse()
+    ad = chart_list.pop()  # 处理AD
+    chart_list.reverse()
     group = chart_list[0].group
     temp = [chart_list[0]]
     final = []
@@ -102,7 +110,7 @@ def regroup_charts(chart_list):
             temp = []
         temp.append(c)
     final.append(temp)
-    return final
+    return (ad, final)
 
 
 def merge_pdf(chart_list):
@@ -110,7 +118,10 @@ def merge_pdf(chart_list):
     foldername = chart_list[0].icao+'_'+chart_list[0].cycle
     tempfolder = os.path.join(OUTPUT_DIR, foldername)
     filename = os.path.join(OUTPUT_DIR, foldername+'.pdf')
-    chart_list = regroup_charts(chart_list)
+    aerodrome, chart_list = regroup_charts(chart_list)
+    # 单独处理AD文件
+    aerodrome.download()
+    # 合并文件
     merger = PdfFileMerger(strict=False)
     pagenum = 0
     for cl in chart_list:
@@ -141,6 +152,7 @@ def merge_pdf(chart_list):
     print("合并完成，正在保存文件...")
     merger.write(filename)
     print(f"已保存到{filename}！")
+    print(f"机场细则（AD）文件已保存到{aerodrome.path}！")
     return tempfolder
 
 
