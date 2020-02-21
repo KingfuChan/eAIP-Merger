@@ -31,13 +31,13 @@ class Chart(object):
         info, cycle, link = html_soup.find_all('td')
         self.code, self.name = info.get_text().split(':')
         self.url = link.find('a').get('href')
-        self.cycle = cycle.get_text()
+        self.cycle = cycle.get_text()[2:4]+cycle.get_text()[-2:]
         self.group = self.get_group()
         self.group_name = GROUP_DICT[self.group]
 
         if self.group == '0':  # 提前对AD输出目录变更
             self.path = os.path.join(
-                OUTPUT_DIR, self.icao+'_'+self.cycle+"_AD.pdf")
+                OUTPUT_DIR, self.icao+'_AD_'+self.cycle+".pdf")
         else:
             self.path = os.path.join(
                 OUTPUT_DIR, self.icao+'_'+self.cycle, self.code+'.pdf')
