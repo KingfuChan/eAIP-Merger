@@ -127,7 +127,12 @@ def merge_pdf(chart_list):
     aerodrome, chart_list = regroup_charts(chart_list)
     # 单独处理AD文件
     # aerodrome.download()
-    os.rename(os.path.join(tempfolder, aerodrome.icao+'.pdf'), aerodrome.path)
+    try:
+        os.rename(os.path.join(tempfolder, aerodrome.icao+'.pdf'), aerodrome.path)
+    except FileExistsError:
+        os.remove(aerodrome.path)
+    except FileNotFoundError:
+        pass
     # 合并文件
     merger = PdfFileMerger(strict=False)
     pagenum = 0
@@ -141,11 +146,10 @@ def merge_pdf(chart_list):
             for i in range(len(cl)):
                 try:
                     reader = cl[i].readPDF()
-                except Exception as e:
-                    print("下载时发生错误，跳过！"+repr(e))
+                    merger.append(reader)
+                except AttributeError:
                     continue
                 else:
-                    merger.append(reader)
                     if i == 0:
                         parent = merger.addBookmark(group, pagenum)
                     merger.addBookmark(cl[i].name, pagenum, parent)
