@@ -4,16 +4,29 @@
 
 import json
 import os
-import re
 import random
+import re
 from shutil import rmtree
 from time import sleep
 
 import requests
-from PyPDF2 import PdfFileMerger, PdfFileReader
+from PyPDF2 import PdfMerger, PdfReader
 
 BASE_URL = "https://aip.sinofsx.com"
 JSON_URL = "/json/AerodromeShow.json"
+GROUP_DICT = {
+    '0': "<机场细则>",
+    '1':  "<机场图>",
+    '2':  "<停机位置图>",
+    '4':  "<机场障碍物A型图(运行限制)>",
+    '5':  "<精密进近地形图>",
+    '6':  "<最低监视引导高度图>",
+    '7':  "<标准仪表离场图>",
+    '9':  "<标准仪表进场图>",
+    '10': "<仪表进近图>",
+    '11': "<目视进近图>",
+    '20': "<仪表进近图(RNAV)>",
+}
 
 
 def main():
@@ -46,16 +59,32 @@ def main():
         if not icao:
             break
         elif icao in adc_full.keys():
-            count = len(adc_full[icao])
-            print(f"找到{icao}，共{count}份pdf文件！")
+            print(f"找到{icao}，共{len(adc_full[icao])}份pdf文件！")
             tempfolder = os.path.join(OUTPUT_DIR, icao)
             os.makedirs(tempfolder, exist_ok=True)
-            merger = PdfFileMerger(strict=False)
-            for label in adc_full[icao].keys():
-                pdffile = download_pdf(
-                    adc_full[icao][label], tempfolder, label)
-                bmtitle = label.split('-')[-1].split(':')[-1]
-                merger.append(pdffile, bookmark=bmtitle)
+            merger = PdfMerger()
+
+            prevgrp = ""
+            pagenum = 1
+            bmrkinfo = {}
+            for label, url in adc_full[icao].items():
+                currgrp = get_group_name(label)
+                pdffile = download_pdf(url, tempfolder, label)
+                merger.append(pdffile)
+                if prevgrp != currgrp:
+                    bmrkinfo[currgrp] = {}
+                    prevgrp = currgrp
+                lbl = label.split(':')[-1]
+                bmrkinfo[currgrp][lbl] = pagenum
+                pagenum += len(pdffile.pages)
+
+            for g, pdfgroup in bmrkinfo.items():
+                pgrp = list(pdfgroup.values())[0]
+                currmrk = merger.add_bookmark(g, pgrp)
+                if len(pdfgroup) > 1:
+                    for l, p in pdfgroup.items():
+                        merger.add_bookmark(l, p, currmrk)
+
             merger.write(os.path.join(OUTPUT_DIR, icao+'.pdf'))
             if input("导出完成！是否删除缓存文件？（Y/N）>").strip().upper() == 'Y':
                 rmtree(tempfolder)
@@ -84,7 +113,7 @@ def transform_full_json(info) -> dict:
     return ap_new
 
 
-def download_pdf(url, path, label) -> PdfFileReader:
+def download_pdf(url, path, label) -> PdfReader:
     filename = label.split(':')[0]+'.pdf'
     fullname = os.path.join(path, filename)
     if not os.path.exists(fullname):
@@ -94,7 +123,16 @@ def download_pdf(url, path, label) -> PdfFileReader:
         sleep(1+3*random.random())
         open(fullname, 'wb').write(res.content)
     print(f"正在读取...\t{label}")
-    return PdfFileReader(fullname, strict=False)
+    return PdfReader(fullname)
+
+
+def get_group_name(label) -> str:
+    index = label.split("-")[1].split(":")[0]
+    matches = re.findall(r"([0-9]+)[A-Z]?", index)
+    if len(matches):
+        return GROUP_DICT[matches[0]]
+    else:
+        return GROUP_DICT["0"]
 
 
 if __name__ == "__main__":
