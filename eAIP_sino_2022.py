@@ -54,7 +54,7 @@ def main():
             for label in adc_full[icao].keys():
                 pdffile = download_pdf(
                     adc_full[icao][label], tempfolder, label)
-                bmtitle = label.split('-')[-1].split(':')[-1]
+                bmtitle = re.sub(f"{icao}-[0-9A-Z]*:", "", label)
                 merger.append(pdffile, bookmark=bmtitle)
             merger.write(os.path.join(OUTPUT_DIR, icao+'.pdf'))
             if input("导出完成！是否删除缓存文件？（Y/N）>").strip().upper() == 'Y':
