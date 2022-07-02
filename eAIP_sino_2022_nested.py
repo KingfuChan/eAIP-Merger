@@ -65,7 +65,7 @@ def main():
             merger = PdfMerger()
 
             prevgrp = ""
-            pagenum = 1
+            pagenum = 0
             bmrkinfo = {}
             for label, url in adc_full[icao].items():
                 currgrp = get_group_name(label)
