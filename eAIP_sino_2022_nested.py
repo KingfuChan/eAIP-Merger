@@ -74,7 +74,7 @@ def main():
                 if prevgrp != currgrp:
                     bmrkinfo[currgrp] = {}
                     prevgrp = currgrp
-                lbl = label.split(':')[-1]
+                lbl = label.split('-')[-1]
                 bmrkinfo[currgrp][lbl] = pagenum
                 pagenum += len(pdffile.pages)
 
