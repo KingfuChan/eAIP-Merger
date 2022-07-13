@@ -38,8 +38,6 @@ def main():
     session.headers.update(headers)
     res = json.loads(session.get(BASE_URL+JSON_URL).text)
     adc_full = transform_full_json(res)
-    json.dump(adc_full, open("AD-Full.json", 'w', encoding='utf-8'),
-              ensure_ascii=False, indent=2)
 
     while True:
         icao = input("请输入机场ICAO码，或按回车键退出>").strip().upper()
